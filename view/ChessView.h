@@ -1,8 +1,11 @@
 #pragma once
+#ifndef QT_NO_DEPRECATED_WARNINGS
+#define QT_NO_DEPRECATED_WARNINGS
+#endif
 #include <QWidget>
 #include <QPainter>
 #include <QMouseEvent>
-#include "../common/Commands.h"
+#include <functional>
 #include "../common/Snapshots.h"
 
 class ChessView : public QWidget {
@@ -10,11 +13,9 @@ class ChessView : public QWidget {
 public:
     explicit ChessView(QWidget* parent = nullptr);
 
-    /// 设置快照提供者（由 App 层绑定到 ViewModel）
-    void setBoardSnapshotProvider(BoardSnapshotProvider provider);
-
-    /// 设置命令（由 App 层绑定到 ViewModel）
-    void setCellClickCommand(CellClickCommand command);
+    // 使用 std::function 直接表达回调类型
+    void setBoardSnapshotProvider(std::function<const BoardSnapshot& ()> provider);
+    void setCellClickCommand(std::function<void(int, int)> command);
 
 protected:
     void paintEvent(QPaintEvent* event) override;
@@ -24,8 +25,8 @@ private:
     void drawBoard(QPainter& painter);
     void drawPieces(QPainter& painter);
 
-    BoardSnapshotProvider boardProvider_;
-    CellClickCommand cellClickCommand_;
+    std::function<const BoardSnapshot& ()> boardProvider_;
+    std::function<void(int, int)> cellClickCommand_;
 
     int cellSize_ = 60;
     int offsetX_ = 40;

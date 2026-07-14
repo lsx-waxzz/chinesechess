@@ -8,11 +8,11 @@ ChessView::ChessView(QWidget* parent)
     setMouseTracking(false);
 }
 
-void ChessView::setBoardSnapshotProvider(BoardSnapshotProvider provider) {
+void ChessView::setBoardSnapshotProvider(std::function<const BoardSnapshot& ()> provider) {
     boardProvider_ = std::move(provider);
 }
 
-void ChessView::setCellClickCommand(CellClickCommand command) {
+void ChessView::setCellClickCommand(std::function<void(int, int)> command) {
     cellClickCommand_ = std::move(command);
 }
 
@@ -28,39 +28,36 @@ void ChessView::drawBoard(QPainter& painter) {
     QPen pen(Qt::black, 2);
     painter.setPen(pen);
 
-    // 横线
     for (int r = 0; r <= 9; ++r)
         painter.drawLine(offsetX_, offsetY_ + r * cellSize_,
-                         offsetX_ + 8 * cellSize_, offsetY_ + r * cellSize_);
-    // 竖线
+            offsetX_ + 8 * cellSize_, offsetY_ + r * cellSize_);
+
     for (int c = 0; c <= 8; ++c) {
         if (c == 0 || c == 8)
             painter.drawLine(offsetX_ + c * cellSize_, offsetY_,
-                             offsetX_ + c * cellSize_, offsetY_ + 9 * cellSize_);
+                offsetX_ + c * cellSize_, offsetY_ + 9 * cellSize_);
         else {
             painter.drawLine(offsetX_ + c * cellSize_, offsetY_,
-                             offsetX_ + c * cellSize_, offsetY_ + 4 * cellSize_);
+                offsetX_ + c * cellSize_, offsetY_ + 4 * cellSize_);
             painter.drawLine(offsetX_ + c * cellSize_, offsetY_ + 5 * cellSize_,
-                             offsetX_ + c * cellSize_, offsetY_ + 9 * cellSize_);
+                offsetX_ + c * cellSize_, offsetY_ + 9 * cellSize_);
         }
     }
 
-    // 楚河汉界
     QFont font("楷体", 20, QFont::Bold);
     painter.setFont(font);
     painter.setPen(Qt::black);
     painter.drawText(offsetX_ + 80, offsetY_ + 4 * cellSize_ + 45,
-                     QStringLiteral("楚  河          汉  界"));
+        QStringLiteral("楚  河          汉  界"));
 
-    // 九宫格斜线
     painter.drawLine(offsetX_ + 3 * cellSize_, offsetY_,
-                     offsetX_ + 5 * cellSize_, offsetY_ + 2 * cellSize_);
+        offsetX_ + 5 * cellSize_, offsetY_ + 2 * cellSize_);
     painter.drawLine(offsetX_ + 5 * cellSize_, offsetY_,
-                     offsetX_ + 3 * cellSize_, offsetY_ + 2 * cellSize_);
+        offsetX_ + 3 * cellSize_, offsetY_ + 2 * cellSize_);
     painter.drawLine(offsetX_ + 3 * cellSize_, offsetY_ + 7 * cellSize_,
-                     offsetX_ + 5 * cellSize_, offsetY_ + 9 * cellSize_);
+        offsetX_ + 5 * cellSize_, offsetY_ + 9 * cellSize_);
     painter.drawLine(offsetX_ + 5 * cellSize_, offsetY_ + 7 * cellSize_,
-                     offsetX_ + 3 * cellSize_, offsetY_ + 9 * cellSize_);
+        offsetX_ + 3 * cellSize_, offsetY_ + 9 * cellSize_);
 }
 
 void ChessView::drawPieces(QPainter& painter) {
@@ -87,7 +84,7 @@ void ChessView::drawPieces(QPainter& painter) {
 
             painter.setPen(isRed ? Qt::red : Qt::black);
             painter.drawText(rect, Qt::AlignCenter,
-                             QString::fromStdString(cell->text));
+                QString::fromStdString(cell->text));
         }
     }
 }
