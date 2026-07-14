@@ -4,18 +4,32 @@
 #include <QVBoxLayout>
 #include <QLabel>
 #include <QPalette>
+#include <QPixmap>
 
 StartWindow::StartWindow(std::function<void(int mode, int difficulty)> onModeSelected,
-                         QWidget* parent)
+    QWidget* parent)
     : QWidget(parent), onModeSelected_(std::move(onModeSelected))
 {
     setWindowTitle(QStringLiteral("中国象棋"));
     setFixedSize(320, 340);
 
-    QPalette pal = palette();
-    pal.setColor(QPalette::Window, Qt::white);
-    setPalette(pal);
-    setAutoFillBackground(true);
+    // 加载背景图片
+    QPixmap pixmap("bk1.jpg");
+    if (!pixmap.isNull()) {
+        // 缩放图片以适配窗口大小
+        QPixmap scaled = pixmap.scaled(size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+        QPalette pal = palette();
+        pal.setBrush(QPalette::Window, QBrush(scaled));
+        setPalette(pal);
+        setAutoFillBackground(true);
+    }
+    else {
+        // 图片加载失败，回退为白色背景
+        QPalette pal = palette();
+        pal.setColor(QPalette::Window, Qt::white);
+        setPalette(pal);
+        setAutoFillBackground(true);
+    }
 
     auto* layout = new QVBoxLayout(this);
     layout->setSpacing(40);
@@ -40,9 +54,9 @@ StartWindow::StartWindow(std::function<void(int mode, int difficulty)> onModeSel
     layout->addStretch();
 
     QObject::connect(btnTwoPlayer, &QPushButton::clicked,
-                     this, &StartWindow::onTwoPlayerClicked);
+        this, &StartWindow::onTwoPlayerClicked);
     QObject::connect(btnVsAI, &QPushButton::clicked,
-                     this, &StartWindow::onVsAIClicked);
+        this, &StartWindow::onVsAIClicked);
 }
 
 void StartWindow::onTwoPlayerClicked() {
@@ -55,10 +69,10 @@ void StartWindow::onVsAIClicked() {
     auto* diffWin = new DifficultyWindow();
     diffWin->setAttribute(Qt::WA_DeleteOnClose);
     QObject::connect(diffWin, &DifficultyWindow::difficultyChosen,
-                     [this](int diff) {
-        if (onModeSelected_) {
-            onModeSelected_(1, diff);  // 人机模式 + 难度
-        }
-    });
+        [this](int diff) {
+            if (onModeSelected_) {
+                onModeSelected_(1, diff);  // 人机模式 + 难度
+            }
+        });
     diffWin->show();
 }
