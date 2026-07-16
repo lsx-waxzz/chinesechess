@@ -17,8 +17,4 @@ public:
 
     static int evaluateBoard(const GameEngine& game, PieceColor aiColor);
 
-private:
-    static int minimax(GameEngine& game, int depth, int alpha, int beta,
-        bool maximizingPlayer, PieceColor aiColor,
-        TimePoint startTime, int timeLimitMs);
 };
