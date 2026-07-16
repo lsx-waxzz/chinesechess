@@ -9,7 +9,7 @@ void GameEngine::resetGame() {
     board_.resetBoard();
     currentTurn_ = PieceColor::Red;
     gameOver_ = false;
-    lastUndoInfo_.reset();  // 清空悔棋历史
+    undoStack_.clear();  // 清空悔棋历史
 }
 
 PieceColor GameEngine::currentPlayer() const { return currentTurn_; }
@@ -170,13 +170,8 @@ bool GameEngine::makeMove(const Move& move) {
     info.move = move;
     info.moverColor = currentTurn_;
     const auto& target = board_.pieceAt(move.toRow, move.toCol);
-    if (target.has_value()) {
-        info.captured = target.value();
-    }
-    else {
-        info.captured = std::nullopt;
-    }
-    lastUndoInfo_ = info;
+    info.captured = target.has_value() ? target.value() : std::optional<Piece>{};
+    undoStack_.push_back(info);
 
     // 执行走子
     board_.setPiece(move.toRow, move.toCol, piece);
@@ -190,13 +185,14 @@ bool GameEngine::makeMove(const Move& move) {
 }
 
 bool GameEngine::undoLastMove() {
-    if (!lastUndoInfo_.has_value()) return false;
-    const UndoInfo& info = *lastUndoInfo_;
+    if (undoStack_.empty()) return false;
+
+    const UndoInfo& info = undoStack_.back();
 
     // 还原棋子
     auto piece = board_.pieceAt(info.move.toRow, info.move.toCol);
     if (!piece.has_value()) {
-        lastUndoInfo_.reset();
+        undoStack_.pop_back();
         return false;
     }
     board_.clearPiece(info.move.toRow, info.move.toCol);
@@ -210,6 +206,6 @@ bool GameEngine::undoLastMove() {
     // 切换回走子方（因为走子后切换了玩家，现在反向切换一次）
     switchPlayer();
     gameOver_ = false;
-    lastUndoInfo_.reset();
+    undoStack_.pop_back();
     return true;
 }
