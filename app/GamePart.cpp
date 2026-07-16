@@ -35,7 +35,7 @@ void GamePart::showMainWindow(int mode, int difficulty) {
 void GamePart::bindMainWindow() {
     if (!mainWindow_) return;
 
-    // 属性绑定
+    // ---- 属性绑定 ----
     mainWindow_->setBoardSnapshotProvider([this]() -> const BoardSnapshot& {
         return viewModel_.boardSnapshot();
         });
@@ -43,7 +43,7 @@ void GamePart::bindMainWindow() {
         return viewModel_.gameSnapshot();
         });
 
-    // 命令绑定
+    // ---- 命令绑定 ----
     mainWindow_->setCellClickCommand([this](int row, int col) {
         viewModel_.onCellClicked(row, col);
         });
@@ -57,7 +57,7 @@ void GamePart::bindMainWindow() {
         onBackToMenu();
         });
 
-    // 通知绑定
+    // ---- 通知绑定 ----
     QObject::connect(&viewModel_, &ChessViewModel::boardChanged,
         mainWindow_, &MainWindow::refreshBoard);
     QObject::connect(&viewModel_, &ChessViewModel::gameStateChanged,
@@ -67,7 +67,7 @@ void GamePart::bindMainWindow() {
     QObject::connect(&viewModel_, &ChessViewModel::statusMessage,
         mainWindow_, &MainWindow::showMessage);
 
-    // 高亮绑定
+    // ---- 高亮绑定 ----
     QObject::connect(&viewModel_, &ChessViewModel::highlightChanged,
         mainWindow_, [this]() {
             mainWindow_->updateHighlight(
@@ -77,6 +77,10 @@ void GamePart::bindMainWindow() {
                 viewModel_.validMoves()
             );
         });
+
+    // ---- 走子音效绑定（新增） ----
+    QObject::connect(&viewModel_, &ChessViewModel::moveMade,
+        mainWindow_, &MainWindow::playMoveSound);
 }
 
 void GamePart::unbindMainWindow() {
