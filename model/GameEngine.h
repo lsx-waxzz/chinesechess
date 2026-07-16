@@ -32,13 +32,13 @@ private:
     bool moveLeavesKingInCheck(const Move& move, PieceColor moverColor) const;
     std::pair<int, int> findKing(PieceColor color) const;
 
-    // 用于悔棋的历史记录
+    // 用于悔棋的历史记录（栈结构，支持多步撤销）
     struct UndoInfo {
         Move move;
         PieceColor moverColor;
         std::optional<Piece> captured;  // 被吃掉的棋子（如果有）
     };
-    std::optional<UndoInfo> lastUndoInfo_;
+    std::vector<UndoInfo> undoStack_;
 
     ChessBoard board_;
     PieceColor currentTurn_;
