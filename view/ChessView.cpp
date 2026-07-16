@@ -16,10 +16,20 @@ void ChessView::setCellClickCommand(std::function<void(int, int)> command) {
     cellClickCommand_ = std::move(command);
 }
 
+void ChessView::setHighlightData(bool hasSelection, int selRow, int selCol,
+    const std::vector<std::pair<int, int>>& validMoves) {
+    hasHighlight_ = hasSelection;
+    selRow_ = selRow;
+    selCol_ = selCol;
+    validMoves_ = validMoves;
+    update();
+}
+
 void ChessView::paintEvent(QPaintEvent*) {
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
     drawBoard(painter);
+    drawHighlight(painter);
     drawPieces(painter);
 }
 
@@ -58,6 +68,44 @@ void ChessView::drawBoard(QPainter& painter) {
         offsetX_ + 5 * cellSize_, offsetY_ + 9 * cellSize_);
     painter.drawLine(offsetX_ + 5 * cellSize_, offsetY_ + 7 * cellSize_,
         offsetX_ + 3 * cellSize_, offsetY_ + 9 * cellSize_);
+}
+
+void ChessView::drawHighlight(QPainter& painter) {
+    if (!hasHighlight_) return;
+
+    // 绘制选中棋子高亮（半透明矩形或圆框）
+    int x = offsetX_ + selCol_ * cellSize_;
+    int y = offsetY_ + selRow_ * cellSize_;
+    painter.setPen(QPen(Qt::yellow, 4));
+    painter.setBrush(Qt::NoBrush);
+    painter.drawEllipse(x - cellSize_ / 2 + 4, y - cellSize_ / 2 + 4,
+        cellSize_ - 8, cellSize_ - 8);
+
+    // 绘制合法走法标记（小圆点）
+    painter.setBrush(QBrush(QColor(0, 255, 0, 150)));
+    painter.setPen(Qt::NoPen);
+    for (auto [tr, tc] : validMoves_) {
+        int tx = offsetX_ + tc * cellSize_;
+        int ty = offsetY_ + tr * cellSize_;
+        // 判断目标是否有棋子，有棋子则画圆圈框，否则画小圆点
+        if (boardProvider_) {
+            const BoardSnapshot& snap = boardProvider_();
+            const auto& cell = snap.cells[tr][tc];
+            if (cell.has_value() && !cell->text.empty()) {
+                // 可吃子位置：画红色圆圈
+                painter.setBrush(Qt::NoBrush);
+                painter.setPen(QPen(Qt::red, 3));
+                painter.drawEllipse(tx - cellSize_ / 2 + 4, ty - cellSize_ / 2 + 4,
+                    cellSize_ - 8, cellSize_ - 8);
+                painter.setPen(Qt::NoPen);
+                painter.setBrush(QBrush(QColor(0, 255, 0, 150)));
+            }
+            else {
+                // 空位：绿色小圆点
+                painter.drawEllipse(tx - 8, ty - 8, 16, 16);
+            }
+        }
+    }
 }
 
 void ChessView::drawPieces(QPainter& painter) {

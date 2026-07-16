@@ -1,4 +1,7 @@
 #pragma once
+#ifndef QT_NO_DEPRECATED_WARNINGS
+#define QT_NO_DEPRECATED_WARNINGS
+#endif
 #include <QWidget>
 #include <QPushButton>
 #include <QVBoxLayout>
