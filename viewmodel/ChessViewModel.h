@@ -1,4 +1,7 @@
 #pragma once
+#ifndef QT_NO_DEPRECATED_WARNINGS
+#define QT_NO_DEPRECATED_WARNINGS
+#endif
 #include <QObject>
 #include "../common/Types.h"
 #include "../common/Snapshots.h"
@@ -12,38 +15,45 @@ public:
 
     explicit ChessViewModel(QObject* parent = nullptr);
 
-    // ===== 命令（View 调用） =====
     void onCellClicked(int row, int col);
     void resetGame();
     void setGameMode(int mode, int difficulty);
     void undoLastMove();
 
-    // ===== 只读属性（View 读取） =====
     const BoardSnapshot& boardSnapshot() const { return boardSnapshot_; }
     const GameSnapshot& gameSnapshot() const { return gameSnapshot_; }
 
+    bool hasSelection() const { return hasSelection_; }
+    int selectedRow() const { return selectedRow_; }
+    int selectedCol() const { return selectedCol_; }
+    const std::vector<std::pair<int, int>>& validMoves() const { return validMoves_; }
+
 signals:
-    // ===== 通知（ViewModel → View） =====
     void boardChanged();
     void gameStateChanged();
     void statusMessage(const QString& msg);
     void undoRejected(const QString& msg);
+    void highlightChanged();
+    void moveMade();   // 新增：走子成功时发射，用于触发音效
 
 private:
     void rebuildSnapshots();
     void notifyIfChanged();
-
-    // 将 Model 的 Piece 转换为显示文字
     static QString pieceToChinese(const std::optional<Piece>& p);
+    void clearHighlight();
 
-    // Model
     GameEngine engine_;
     GameMode gameMode_ = GameMode::TwoPlayer;
     AIDifficulty aiDifficulty_ = AIDifficulty::Easy;
 
-    // 缓存快照（用于比较变化）
     BoardSnapshot boardSnapshot_;
     GameSnapshot gameSnapshot_;
     BoardSnapshot prevBoardSnapshot_;
     GameSnapshot prevGameSnapshot_;
+
+    bool hasSelection_ = false;
+    int selectedRow_ = -1, selectedCol_ = -1;
+    std::vector<std::pair<int, int>> validMoves_;
+
+    bool undoUsed_ = false;
 };
